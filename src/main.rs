@@ -1,4 +1,13 @@
 use std::process::Command;
+use clap::Parser;
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, default_value_t=String::from("random"))]
+    pokemon_name: String,
+}
 
 fn get_line_width(s: &str) -> i32 {
     let mut line_width = 0;
@@ -11,12 +20,19 @@ fn get_line_width(s: &str) -> i32 {
 }
 
 fn main() {
-    let pokemon = Command::new("pokemon-colorscripts")
-        .arg("-r")
-        .arg("--no-title")
-        .output()
-        .expect("pokemon-colorscripts should be installed");
-    let pokemon = String::from_utf8_lossy(&pokemon.stdout);
+    let args = Args::parse();
+    
+    let mut pokemon = Command::new("pokemon-colorscripts");
+    println!("{}",args.pokemon_name);
+    if (args.pokemon_name) == String::from("random"){
+        pokemon.arg("-r");
+    }else {
+        pokemon.arg("-n");
+        pokemon.arg(args.pokemon_name);
+    }
+    pokemon.arg("--no-title");
+    let pokemon_output = pokemon.output().expect("pokemon-colorscripts should be installed");
+    let pokemon = String::from_utf8_lossy(&pokemon_output.stdout);
     let neofetch = Command::new("neofetch")
         .arg("--backend")
         .arg("off")
