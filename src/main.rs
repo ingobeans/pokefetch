@@ -2,15 +2,22 @@ use std::process::Command;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = None, after_help = 
+    "Any other args will be passed to neofetch."
+)]
 struct Args {
     #[arg(short, long, default_value_t=String::from("random"))]
     pokemon_name: String,
+
+    // capture all extra arguments
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true, hide = true)]
+    _args: Vec<String>,
 }
 
 fn get_line_width(s: &str) -> i32 {
     let mut line_width = 0;
     for c in s.split("") {
+        // only add visible characters, not ANSI escape codes
         if c == "▀" || c == " " || c == "▄"{
             line_width += 1
         }
@@ -20,7 +27,6 @@ fn get_line_width(s: &str) -> i32 {
 
 fn main() {
     let args = Args::parse();
-    
     let mut pokemon = Command::new("pokemon-colorscripts");
     if (args.pokemon_name) == String::from("random"){
         pokemon.arg("-r");
@@ -31,12 +37,14 @@ fn main() {
     pokemon.arg("--no-title");
     let pokemon_output = pokemon.output().expect("pokemon-colorscripts should be installed");
     let pokemon = String::from_utf8_lossy(&pokemon_output.stdout);
-    let neofetch = Command::new("neofetch")
-        .arg("--backend")
-        .arg("off")
-        .output()
-        .expect("neofetch should be installed");
-    let neofetch = String::from_utf8_lossy(&neofetch.stdout);
+    let mut neofetch = Command::new("neofetch");
+    neofetch.arg("--backend");
+    neofetch.arg("off");
+    for arg in args._args {
+        neofetch.arg(arg);
+    }
+    let neofetch_output = neofetch.output().expect("neofetch should be installed");
+    let neofetch = String::from_utf8_lossy(&neofetch_output.stdout);
     let neofetch_lines: Vec<&str> = neofetch.split("\n").collect();
     let pokemon_lines:Vec<&str> = pokemon.split("\n").collect();
     let tab_width = 4;
