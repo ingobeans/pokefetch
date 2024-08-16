@@ -22,7 +22,6 @@ fn main() {
     let args = Args::parse();
     
     let mut pokemon = Command::new("pokemon-colorscripts");
-    println!("{}",args.pokemon_name);
     if (args.pokemon_name) == String::from("random"){
         pokemon.arg("-r");
     }else {
