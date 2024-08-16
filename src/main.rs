@@ -1,7 +1,13 @@
 use std::process::Command;
 
-fn is_whitespace(s: &str) -> bool {
-    s.trim().is_empty()
+fn get_line_width(s: &str) -> i32 {
+    let mut line_width = 0;
+    for c in s.split("") {
+        if c == "▀" || c == " " || c == "▄"{
+            line_width += 1
+        }
+    }
+    return line_width;
 }
 
 fn main() {
@@ -18,16 +24,38 @@ fn main() {
         .expect("neofetch should be installed");
     let neofetch = String::from_utf8_lossy(&neofetch.stdout);
     let neofetch_lines: Vec<&str> = neofetch.split("\n").collect();
-    let pokemon_lines = pokemon.split("\n");
-    for (i, line) in pokemon_lines.into_iter().enumerate() {
-        if is_whitespace(line) {
-            continue;
+    let pokemon_lines:Vec<&str> = pokemon.split("\n").collect();
+    let tab_width = 4;
+
+    let mut max = neofetch_lines.len();
+    if pokemon_lines.len() > max {
+        max = pokemon_lines.len()
+    }
+    
+    // calculate the pokemon ascii art width
+    let mut width = 0;
+    for line in pokemon_lines.iter() {
+        let line_width = get_line_width(line);
+        if line_width > width {
+            width = line_width
         }
-        if neofetch_lines.len() > i {
-            //println!("{}    - {}",line,neofetch_lines[i]);
-            println!("{}    - {}",line, neofetch_lines[i]);
+    }
+    
+    for i in 0..max {
+        let mut spaces = width+tab_width;
+        if pokemon_lines.len() > i {
+            spaces = width - get_line_width(pokemon_lines[i])+tab_width;
+        }
+        let mut spaces_string = String::new();
+        for _ in 0..spaces {
+            spaces_string = spaces_string + " "
+        }
+        if neofetch_lines.len() > i && pokemon_lines.len() > i {
+            println!("{}{spaces_string}{}",pokemon_lines[i], neofetch_lines[i]);
+        }else if pokemon_lines.len() > i{
+            println!("{}{spaces_string}",pokemon_lines[i]);
         }else {
-            println!("{}    - cool guy",line);
+            println!("{spaces_string}{}",neofetch_lines[i]);
         }
     }
 }
