@@ -3,11 +3,17 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None, after_help = 
-    "Any other args will be passed to neofetch."
+    "Any other args will be passed to neofetch.\nEx: pokefetch -p pikachu -f alola-cap -s --disable memory"
 )]
 struct Args {
     #[arg(short, long, default_value_t=String::from("random"))]
     pokemon_name: String,
+    #[arg(short, long, default_value_t=false)]
+    big: bool,
+    #[arg(short, long, default_value_t=false)]
+    shiny: bool,
+    #[arg(short, long, default_value_t=String::from("default"))]
+    form: String,
 
     // capture all extra arguments
     #[arg(trailing_var_arg = true, allow_hyphen_values = true, hide = true)]
@@ -18,7 +24,7 @@ fn get_line_width(s: &str) -> i32 {
     let mut line_width = 0;
     for c in s.split("") {
         // only add visible characters, not ANSI escape codes
-        if c == "▀" || c == " " || c == "▄"{
+        if c == "▀" || c == " " || c == "▄" || c == "█"{
             line_width += 1
         }
     }
@@ -33,6 +39,16 @@ fn main() {
     }else {
         pokemon.arg("-n");
         pokemon.arg(args.pokemon_name);
+    }
+    if args.big {
+        pokemon.arg("-b");
+    }
+    if args.shiny {
+        pokemon.arg("-s");
+    }
+    if (args.form) != String::from("default"){
+        pokemon.arg("-f");
+        pokemon.arg(args.form);
     }
     pokemon.arg("--no-title");
     let pokemon_output = pokemon.output().expect("pokemon-colorscripts should be installed");
